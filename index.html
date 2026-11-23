@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#003d7a">
+<title>Pokus zavarivanja – zaostala naprezanja</title>
+<style>
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:18px;line-height:1.35;color:#000;background:#fff}
+header{background:#003d7a;color:#fff;padding:12px 14px}
+header h1{margin:0;font-size:20px}
+header .sub{font-size:14px;opacity:.9}
+nav{position:sticky;top:0;z-index:10;background:#fff;border-bottom:3px solid #003d7a;display:flex;gap:6px;overflow-x:auto;padding:6px}
+nav a{flex:0 0 auto;display:block;padding:10px 12px;border:2px solid #003d7a;border-radius:8px;color:#003d7a;font-weight:700;text-decoration:none;font-size:16px}
+main{padding:10px 10px 80px;max-width:900px;margin:0 auto}
+#saveinfo{font-size:14px;color:#333;margin:4px 0 8px}
+#saveinfo.err{background:#c00;color:#fff;padding:8px;border-radius:6px;font-weight:700}
+section,details.card{border:2px solid #222;border-radius:10px;margin:12px 0;background:#fff}
+section>h2,details.card>summary{margin:0;padding:12px;font-size:20px;font-weight:800;background:#e8eef6;border-radius:8px 8px 0 0}
+details.card>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::before{content:"▶";font-size:16px}
+details.card[open]>summary::before{content:"▼"}
+.body{padding:10px 12px}
+h3{font-size:17px;margin:16px 0 6px;padding-bottom:4px;border-bottom:2px solid #003d7a;color:#003d7a}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.f{display:flex;flex-direction:column}
+.f.full{grid-column:1/-1}
+.f label{font-weight:700;font-size:16px;margin-bottom:3px}
+.f .hint{font-weight:400;font-size:14px;color:#333}
+.inp{display:flex;align-items:stretch;border:2px solid #333;border-radius:8px;background:#fff;overflow:hidden}
+.inp:focus-within{outline:3px solid #0a64c8;outline-offset:1px}
+.inp input,.inp select,.inp textarea{flex:1;min-width:0;border:0;font:inherit;font-size:20px;padding:10px;min-height:52px;background:transparent;color:#000}
+.inp textarea{min-height:90px;resize:vertical}
+.inp .unit{display:flex;align-items:center;padding:0 10px;background:#eee;font-weight:700;font-size:16px;white-space:nowrap;border-left:2px solid #333}
+.f.haswarn .inp{border-color:#b37800;background:#fff8d6}
+.warn{margin-top:4px;background:#ffe866;border:2px solid #b37800;border-radius:6px;padding:6px 8px;font-size:15px;font-weight:600}
+.warn[hidden]{display:none}
+.out{border:2px dashed #003d7a;border-radius:8px;padding:10px;font-size:20px;font-weight:800;min-height:52px;background:#f2f6fb}
+.out small{font-weight:600;font-size:14px;display:block;color:#333}
+.f.haswarn .out{border-color:#b37800;background:#fff8d6}
+button{font:inherit;font-weight:700;font-size:18px;min-height:52px;padding:10px 14px;border-radius:8px;border:2px solid #003d7a;background:#003d7a;color:#fff;cursor:pointer}
+button.sec{background:#fff;color:#003d7a}
+button.danger{background:#b00000;border-color:#b00000}
+button:active{transform:translateY(1px)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.btnrow button{flex:1 1 140px}
+.chk{display:flex;align-items:flex-start;gap:12px;padding:10px 6px;border-bottom:1px solid #ccc;cursor:pointer;font-size:18px}
+.chk:last-child{border-bottom:0}
+.chk input{width:32px;height:32px;flex:0 0 32px;margin:0;accent-color:#007a2e}
+.chk.on span{color:#555;text-decoration:line-through}
+.sw{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.sw .disp{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;min-width:120px;padding:4px 10px;border:2px solid #333;border-radius:8px;text-align:center}
+.sw .disp.run{background:#d40000;color:#fff;border-color:#d40000}
+.sw button{flex:1 1 90px}
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{border:1px solid #444;padding:7px 5px;text-align:center}
+th{background:#003d7a;color:#fff}
+td.w{background:#ffe866;font-weight:800}
+tr.click{cursor:pointer}
+.badge{font-size:14px;font-weight:800;padding:3px 8px;border-radius:12px;border:2px solid #000}
+.st0{background:#fff;color:#000}
+.st1{background:#ffd000;color:#000}
+.st2{background:#007a2e;color:#fff;border-color:#007a2e}
+.wb{background:#ffe866;border-color:#b37800}
+.plan{font-size:15px;font-weight:600}
+.tablewrap{overflow-x:auto}
+.mini{font-size:14px;color:#333}
+</style>
+</head>
+<body>
+<header>
+  <h1>Pokus zavarivanja – zaostala naprezanja</h1>
+  <div class="sub">MAG, bead-on-plate, P1–P5 · FSB Zagreb</div>
+</header>
+<nav id="nav">
+  <a href="#pregled">Pregled</a><a href="#opce">Opće</a><a href="#check">Checklista</a>
+  <a href="#card-P1">P1</a><a href="#card-P2">P2</a><a href="#card-P3">P3</a><a href="#card-P4">P4</a><a href="#card-P5">P5</a>
+  <a href="#izvoz">Izvoz</a>
+</nav>
+<main>
+  <div id="saveinfo">Učitavanje…</div>
+
+  <section id="pregled">
+    <h2>Pregled</h2>
+    <div class="body">
+      <div class="tablewrap"><table>
+        <thead><tr><th>Ploča</th><th>T0<br>°C</th><th>I<br>A</th><th>U<br>V</th><th>v<br>cm/min</th><th>Q<br>kJ/mm</th><th>Stanje</th></tr></thead>
+        <tbody id="sumbody"></tbody>
+      </table></div>
+      <p class="mini">Žuto = upozorenje. Dodirni red za skok na ploču. Redoslijed: P1, P2, P5 (hladne), zatim P3, P4 (predgrijane).</p>
+    </div>
+  </section>
+
+  <section id="opce">
+    <h2>Opći podaci</h2>
+    <div class="body" id="genbody"></div>
+  </section>
+
+  <section id="check">
+    <h2>Checklista prije zavarivanja <span id="chkcount" class="badge st0"></span></h2>
+    <div class="body" id="chkbody"></div>
+  </section>
+
+  <div id="plates"></div>
+
+  <section id="izvoz">
+    <h2>Spremanje i izvoz</h2>
+    <div class="body">
+      <p class="mini">Sve se automatski sprema na ovom uređaju (u pregledniku). Za svaki slučaj povremeno izvezi JSON.</p>
+      <div class="btnrow">
+        <button id="bCsv">Izvezi CSV</button>
+        <button id="bJson">Izvezi JSON</button>
+        <button id="bCopy" class="sec">Kopiraj sažetak</button>
+      </div>
+      <div class="btnrow">
+        <button id="bImport" class="sec">Uvezi JSON</button>
+        <button id="bClear" class="danger">Obriši sve</button>
+      </div>
+      <input type="file" id="fImport" accept=".json,application/json" hidden>
+      <div id="copyinfo" class="mini"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(function(){
+"use strict";
+var STORE_KEY = "zavarivanje_pokus_v1";
+var K = 0.8; // toplinska učinkovitost MAG
+var PLATES = ["P1","P2","P3","P4","P5"];
+var PLAN = {
+  P1:{T:"20", Q:"niži", desc:"sobna temperatura, niži unos topline"},
+  P2:{T:"20", Q:"viši", desc:"sobna temperatura, viši unos topline"},
+  P3:{T:"120",Q:"niži", desc:"predgrijano ~120 °C, niži unos topline"},
+  P4:{T:"120",Q:"viši", desc:"predgrijano ~120 °C, viši unos topline"},
+  P5:{T:"20", Q:"niži (ponavljanje P1)", desc:"ponavljanje P1"}
+};
+
+/* ---------- definicije polja ---------- */
+var GEN = [
+  {k:"date",label:"Datum",type:"date"},
+  {k:"welder",label:"Zavarivač",type:"text"},
+  {k:"machine",label:"Uređaj za zavarivanje",type:"text"},
+  {k:"steel",label:"Oznaka čelika",type:"text"},
+  {k:"Re",label:"Granica tečenja Re (certifikat)",type:"num",unit:"MPa"},
+  {k:"cert",label:"Br. certifikata / šarže",type:"text"},
+  {group:"Kemijski sastav (nije obavezno)"},
+  {k:"C",label:"C",type:"num",unit:"%"},{k:"Mn",label:"Mn",type:"num",unit:"%"},
+  {k:"Si",label:"Si",type:"num",unit:"%"},{k:"Cr",label:"Cr",type:"num",unit:"%"},
+  {k:"Mo",label:"Mo",type:"num",unit:"%"},{k:"Ni",label:"Ni",type:"num",unit:"%"},
+  {k:"Cu",label:"Cu",type:"num",unit:"%"},{k:"V",label:"V",type:"num",unit:"%"},
+  {group:"Dodatni materijal i plin"},
+  {k:"wire",label:"Žica – vrsta",type:"text"},
+  {k:"wireD",label:"Promjer žice",type:"num",unit:"mm"},
+  {k:"gas",label:"Zaštitni plin",type:"text"},
+  {k:"gasFlow",label:"Protok plina",type:"num",unit:"l/min"},
+  {k:"polarity",label:"Polaritet",type:"select",opts:["","DC+ (žica na +)","DC− (žica na −)","AC"]},
+  {k:"Tamb",label:"Temperatura okoline",type:"num",unit:"°C"},
+  {k:"notes",label:"Napomene",type:"area",full:true}
+];
+
+var CHECK = [
+  "Certifikat materijala uzet ili fotografiran",
+  "Sve ploče izmjerene (B, L, d)",
+  "Ploče označene P1–P5, označen smjer valjanja",
+  "Referentna nezavarena ploča ostavljena (ako ima viška)",
+  "Pitao asistenta kako se priprema površina za XRD",
+  "Mjesto mjerenja NIJE brušeno ni četkano",
+  "Označena linija mjerenja na sredini duljine (točke 0, 5, 10, 15, 25 mm od osi)",
+  "Ploča položena na uske podloške, ne na masivan stol; fotografirano postavljanje",
+  "Dogovoren isti smjer navara i isti razmak od rubova za sve ploče",
+  "Pištolj na kolicima ili robotu (ako je moguće)",
+  "Termopar i uređaj za bilježenje (ako postoje): udaljenost od osi zapisana",
+  "Zaštitna oprema: kaciga ili naočale, rukavice, negoriva odjeća, zatvorene cipele"
+];
+
+// type: num | text | area | time | check | out (izračun)
+var PF = [
+  {group:"Plan"},
+  {k:"plannedT",label:"Planirana temperatura",type:"num",unit:"°C"},
+  {k:"plannedQ",label:"Planirani unos topline",type:"text"},
+  {group:"Dimenzije ploče"},
+  {k:"B",label:"Širina B",type:"num",unit:"mm"},
+  {k:"L",label:"Duljina L",type:"num",unit:"mm"},
+  {k:"d1",label:"Debljina d – 1. mjesto",type:"num",unit:"mm"},
+  {k:"d2",label:"Debljina d – 2. mjesto",type:"num",unit:"mm"},
+  {k:"d3",label:"Debljina d – 3. mjesto",type:"num",unit:"mm"},
+  {k:"dAvg",label:"Debljina d – prosjek",type:"out"},
+  {k:"support",label:"Podložje / način polaganja",type:"text",full:true},
+  {group:"Temperatura ploče prije luka"},
+  {k:"T01",label:"T0 – 1. mjerenje",type:"num",unit:"°C"},
+  {k:"T02",label:"T0 – 2. mjerenje",type:"num",unit:"°C"},
+  {k:"T03",label:"T0 – 3. mjerenje",type:"num",unit:"°C"},
+  {k:"T0avg",label:"T0 – prosjek",type:"out"},
+  {k:"preheat",label:"Način predgrijavanja",type:"text",full:true,only:["P3","P4"]},
+  {group:"Parametri zavarivanja (prosjek s displeja)"},
+  {k:"I",label:"Struja I",type:"num",unit:"A"},
+  {k:"U",label:"Napon U",type:"num",unit:"V"},
+  {k:"wfs",label:"Brzina dodavanja žice",type:"num",unit:"m/min"},
+  {k:"stickout",label:"Slobodni kraj žice",type:"num",unit:"mm"},
+  {k:"angle",label:"Nagib pištolja",type:"num",unit:"°"},
+  {k:"start",label:"Vrijeme početka zavarivanja",type:"time"},
+  {group:"Brzina zavarivanja"},
+  {k:"len",label:"Duljina navara",type:"num",unit:"mm"},
+  {k:"time",label:"Vrijeme zavarivanja",type:"num",unit:"s",stopwatch:true},
+  {k:"vManual",label:"Brzina – ručni unos (ako se zna s kolica)",type:"num",unit:"cm/min",hint:"Ako je upisano, koristi se umjesto izračunate."},
+  {k:"v",label:"Brzina zavarivanja v",type:"out"},
+  {group:"Unos topline"},
+  {k:"Q",label:"Unos topline Q = 0,8 · U · I / v",type:"out",full:true},
+  {group:"Nakon hlađenja"},
+  {k:"beadW",label:"Širina navara na sredini duljine",type:"num",unit:"mm"},
+  {k:"distort",label:"Progib / deformacija (nije obavezno)",type:"num",unit:"mm"},
+  {group:"Termopar (nije obavezno)"},
+  {k:"tcDist",label:"Udaljenost od osi",type:"num",unit:"mm"},
+  {k:"t85",label:"Izmjereni t8/5",type:"num",unit:"s"},
+  {k:"Tpeak",label:"Vršna temperatura",type:"num",unit:"°C"},
+  {group:"Završne kvačice"},
+  {k:"cAir",label:"Hlađenje na zraku (bez vode i ravnanja)",type:"check"},
+  {k:"cPhoto",label:"Fotografirano",type:"check"},
+  {k:"cMark",label:"Ploča označena",type:"check"},
+  {group:"Napomene"},
+  {k:"notes",label:"Napomene",type:"area",full:true}
+];
+
+/* ---------- stanje ---------- */
+var st, storageOK = true;
+function blank(){
+  var s = {general:{}, checklist:{}, plates:{}, sw:{}, savedAt:null};
+  var d = new Date();
+  s.general.date = d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+  PLATES.forEach(function(p){
+    s.plates[p] = {plannedT:PLAN[p].T, plannedQ:PLAN[p].Q};
+    s.sw[p] = {running:false, start:null};
+  });
+  return s;
+}
+function normalize(s){
+  var b = blank();
+  if(!s || typeof s!=="object") return b;
+  s.general = s.general || b.general;
+  s.checklist = s.checklist || {};
+  s.plates = s.plates || {};
+  s.sw = s.sw || {};
+  PLATES.forEach(function(p){
+    if(!s.plates[p]) s.plates[p] = b.plates[p];
+    if(!s.sw[p]) s.sw[p] = {running:false,start:null};
+  });
+  return s;
+}
+function load(){
+  try{
+    var raw = localStorage.getItem(STORE_KEY);
+    st = normalize(raw ? JSON.parse(raw) : null);
+  }catch(e){ storageOK=false; st = blank(); }
+}
+function save(){
+  st.savedAt = new Date().toISOString();
+  var el = document.getElementById("saveinfo");
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(st));
+    storageOK = true;
+    el.className=""; el.textContent = "✓ Spremljeno na uređaju u " + clock(new Date());
+  }catch(e){
+    storageOK = false;
+    el.className="err"; el.textContent = "⚠ Automatsko spremanje NE radi u ovom pregledniku (npr. privatni način). Izvoz JSON-a radi – izvezi redovito!";
+  }
+}
+
+/* ---------- pomoćne ---------- */
+function pad(n){return (n<10?"0":"")+n}
+function clock(d){return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds())}
+function num(v){
+  if(v===undefined||v===null) return NaN;
+  var s = String(v).trim().replace(/\s/g,"").replace(",",".");
+  if(!/^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)) return NaN;
+  return parseFloat(s);
+}
+function ok(x){return typeof x==="number" && isFinite(x)}
+function fmt(x,d){ if(!ok(x)) return ""; return x.toFixed(d).replace(".",","); }
+function avg(a){ a=a.filter(ok); if(!a.length) return NaN; return a.reduce(function(s,x){return s+x},0)/a.length; }
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+
+/* ---------- izgradnja sučelja ---------- */
+function inputHTML(scope,f,val){
+  var id = "f-"+scope+"-"+f.k, a = 'id="'+id+'" data-s="'+scope+'" data-k="'+f.k+'"';
+  var v = esc(val);
+  var inner;
+  if(f.type==="num") inner = '<input '+a+' type="text" inputmode="decimal" autocomplete="off" value="'+v+'">';
+  else if(f.type==="date") inner = '<input '+a+' type="date" value="'+v+'">';
+  else if(f.type==="area") inner = '<textarea '+a+'>'+v+'</textarea>';
+  else if(f.type==="select") inner = '<select '+a+'>'+f.opts.map(function(o){return '<option'+(o===val?' selected':'')+'>'+esc(o)+'</option>'}).join("")+'</select>';
+  else inner = '<input '+a+' type="text" autocomplete="off" value="'+v+'">';
+  return '<div class="inp">'+inner+(f.unit?'<span class="unit">'+esc(f.unit)+'</span>':'')+'</div>';
+}
+function fieldsHTML(scope,fields,data){
+  var h="", open=false;
+  fields.forEach(function(f){
+    if(f.only && f.only.indexOf(scope)<0) return;
+    if(f.group){ if(open) h+="</div>"; h+="<h3>"+esc(f.group)+"</h3><div class='grid'>"; open=true; return; }
+    if(!open){ h+="<div class='grid'>"; open=true; }
+    var wid = 'w-'+scope+'-'+f.k;
+    if(f.type==="check"){
+      h+='<label class="chk f full'+(data[f.k]?' on':'')+'" id="fw-'+scope+'-'+f.k+'"><input type="checkbox" data-s="'+scope+'" data-k="'+f.k+'"'+(data[f.k]?' checked':'')+'><span>'+esc(f.label)+'</span></label>';
+      return;
+    }
+    h+='<div class="f'+(f.full?' full':'')+'" id="fw-'+scope+'-'+f.k+'">';
+    h+='<label'+(f.type==="out"?'':' for="f-'+scope+'-'+f.k+'"')+'>'+esc(f.label)+(f.hint?' <span class="hint">'+esc(f.hint)+'</span>':'')+'</label>';
+    if(f.type==="out") h+='<div class="out" id="o-'+scope+'-'+f.k+'">–</div>';
+    else if(f.type==="time"){
+      h+='<div style="display:flex;gap:8px">'+inputHTML(scope,f,data[f.k]||"").replace('class="inp"','class="inp" style="flex:1"')+'<button type="button" data-now="'+scope+'">Sada</button></div>';
+    } else h+=inputHTML(scope,f,data[f.k]==null?"":data[f.k]);
+    if(f.stopwatch){
+      h+='<div class="sw"><div class="disp" id="sw-'+scope+'">0,0 s</div>'+
+         '<button type="button" data-sw="'+scope+'" id="swb-'+scope+'">Start</button>'+
+         '<button type="button" class="sec" data-swreset="'+scope+'">Nula</button></div>'+
+         '<div class="mini">Stop upisuje vrijeme u polje iznad.</div>';
+    }
+    h+='<div class="warn" id="'+wid+'" hidden></div></div>';
+  });
+  if(open) h+="</div>";
+  return h;
+}
+function build(){
+  document.getElementById("genbody").innerHTML = fieldsHTML("general",GEN,st.general);
+  document.getElementById("chkbody").innerHTML = CHECK.map(function(t,i){
+    var on = !!st.checklist["c"+i];
+    return '<label class="chk'+(on?' on':'')+'"><input type="checkbox" data-c="c'+i+'"'+(on?' checked':'')+'><span>'+esc(t)+'</span></label>';
+  }).join("");
+  document.getElementById("plates").innerHTML = PLATES.map(function(p){
+    return '<details class="card" id="card-'+p+'"><summary>'+p+
+      ' <span class="badge st0" id="bad-'+p+'">nije započeto</span>'+
+      ' <span class="badge wb" id="wc-'+p+'" hidden></span>'+
+      ' <span class="plan">'+esc(PLAN[p].desc)+'</span></summary><div class="body">'+
+      fieldsHTML(p,PF,st.plates[p])+'</div></details>';
+  }).join("");
+}
+
+/* ---------- izračuni ---------- */
+function derive(p){
+  var s = st.plates[p], n=function(k){return num(s[k])};
+  var D = {};
+  D.dAvg = avg([n("d1"),n("d2"),n("d3")]);
+  D.T0 = avg([n("T01"),n("T02"),n("T03")]);
+  D.I = n("I"); D.U = n("U");
+  var L=n("len"), t=n("time"), vm=n("vManual");
+  D.vAuto = (L>0 && t>0) ? L/t : NaN;           // mm/s
+  if(vm>0){ D.v = vm/6; D.vSrc = "ručno"; }      // cm/min -> mm/s
+  else { D.v = D.vAuto; D.vSrc = ok(D.vAuto)?"izračun":""; }
+  D.vcm = ok(D.v) ? D.v*6 : NaN;                 // mm/s -> cm/min
+  D.Q = (D.I>0 && D.U>0 && D.v>0) ? K*D.U*D.I/D.v/1000 : NaN; // kJ/mm
+  // stanje
+  var any=false;
+  Object.keys(s).forEach(function(k){
+    if(k==="plannedT"||k==="plannedQ") return;
+    var v=s[k]; if(v===true || (typeof v==="string" && v.trim()!=="")) any=true;
+  });
+  if(st.sw[p] && st.sw[p].running) any=true;
+  var done = ok(D.I)&&ok(D.U)&&ok(D.v)&&ok(D.T0)&&s.cAir&&s.cPhoto&&s.cMark;
+  D.status = done?2:(any?1:0);
+  return D;
+}
+var STATUS = ["nije započeto","u tijeku","gotovo"];
+
+function warnings(DD){
+  var W = {}; // W[p][k] = [poruke]
+  function add(p,k,m){ (W[p]=W[p]||{}); (W[p][k]=W[p][k]||[]).push(m); }
+  PLATES.forEach(function(p){
+    var s = st.plates[p], D = DD[p];
+    if(ok(D.I) && (D.I<180||D.I>300)) add(p,"I","Struja izvan 180–300 A");
+    if(ok(D.vcm) && (D.vcm<20||D.vcm>40)) add(p,"v","Brzina izvan 20–40 cm/min");
+    ["T01","T02","T03"].forEach(function(k){var x=num(s[k]); if(ok(x)&&(x<10||x>150)) add(p,k,"T0 izvan 10–150 °C");});
+    if(ok(D.T0)&&(D.T0<10||D.T0>150)) add(p,"T0avg","Prosječna T0 izvan 10–150 °C");
+    ["d1","d2","d3"].forEach(function(k){var x=num(s[k]); if(ok(x)&&(x<8||x>16)) add(p,k,"Debljina izvan 8–16 mm");});
+    if(ok(D.dAvg)&&(D.dAvg<8||D.dAvg>16)) add(p,"dAvg","Prosječna debljina izvan 8–16 mm");
+  });
+  [["P1","P2"],["P3","P4"]].forEach(function(pr){
+    var lo=DD[pr[0]].Q, hi=DD[pr[1]].Q;
+    if(ok(lo)&&ok(hi)&&lo>0){
+      var r = hi/lo;
+      if(r<1.8){
+        var m = "Q("+pr[1]+")/Q("+pr[0]+") = "+fmt(r,2)+" – viši unos bi trebao biti barem ~1,8× veći od nižeg";
+        add(pr[1],"Q",m); add(pr[0],"Q",m);
+      }
+    }
+  });
+  var a=DD.P1, b=DD.P5;
+  [["I","I","struji"],["U","U","naponu"],["v","v","brzini"]].forEach(function(x){
+    var v1=a[x[0]], v5=b[x[0]];
+    if(ok(v1)&&ok(v5)&&v1!==0){
+      var d=Math.abs(v5-v1)/Math.abs(v1);
+      if(d>0.10) add("P5",x[1],"P5 se razlikuje od P1 za "+fmt(d*100,0)+" % u "+x[2]+" (više od 10 %)");
+    }
+  });
+  return W;
+}
+
+function update(){
+  var DD={}; PLATES.forEach(function(p){DD[p]=derive(p)});
+  var W = warnings(DD);
+  // izlazi
+  PLATES.forEach(function(p){
+    var D=DD[p];
+    setOut(p,"dAvg", ok(D.dAvg)? fmt(D.dAvg,2)+" mm":"–");
+    setOut(p,"T0avg", ok(D.T0)? fmt(D.T0,1)+" °C":"–");
+    setOut(p,"v", ok(D.v)? fmt(D.v,2)+" mm/s &nbsp;=&nbsp; "+fmt(D.vcm,1)+" cm/min<small>Izvor: "+(D.vSrc==="ručno"?"ručni unos":"duljina / vrijeme")+(D.vSrc==="ručno"&&ok(D.vAuto)?" (izračun bi dao "+fmt(D.vAuto*6,1)+" cm/min)":"")+"</small>" : "–<small>Upiši duljinu i vrijeme, ili brzinu ručno.</small>");
+    setOut(p,"Q", ok(D.Q)? fmt(D.Q,3)+" kJ/mm<small>= "+fmt(D.Q*1000,0)+" J/mm · k = 0,8 · v = "+fmt(D.v,2)+" mm/s</small>" : "–<small>Potrebni su U, I i v.</small>");
+    // stanje
+    var bad=document.getElementById("bad-"+p);
+    bad.textContent=STATUS[D.status]; bad.className="badge st"+D.status;
+  });
+  // upozorenja: očisti sve pa postavi
+  var all = document.querySelectorAll(".warn");
+  for(var i=0;i<all.length;i++){ all[i].hidden=true; all[i].textContent=""; var fw=all[i].parentNode; if(fw) fw.classList.remove("haswarn"); }
+  PLATES.forEach(function(p){
+    var c=0, wp=W[p]||{};
+    Object.keys(wp).forEach(function(k){
+      var el=document.getElementById("w-"+p+"-"+k);
+      if(el){ el.hidden=false; el.textContent="⚠ "+wp[k].join(" · "); el.parentNode.classList.add("haswarn"); }
+      c+=wp[k].length;
+    });
+    var wc=document.getElementById("wc-"+p);
+    wc.hidden = !c; wc.textContent = "⚠ "+c;
+  });
+  // pregledna tablica
+  var h="";
+  PLATES.forEach(function(p){
+    var D=DD[p], wp=W[p]||{};
+    function cell(val,keys){var w=keys.some(function(k){return wp[k]}); return '<td'+(w?' class="w"':'')+'>'+(val||"–")+'</td>';}
+    h+='<tr class="click" data-go="'+p+'"><td><b>'+p+'</b></td>'+
+      cell(fmt(D.T0,0),["T0avg","T01","T02","T03"])+cell(fmt(D.I,0),["I"])+cell(fmt(D.U,1),["U"])+
+      cell(fmt(D.vcm,1),["v"])+cell(fmt(D.Q,3),["Q"])+
+      '<td><span class="badge st'+D.status+'">'+STATUS[D.status]+'</span></td></tr>';
+  });
+  document.getElementById("sumbody").innerHTML=h;
+  // checklista
+  var n=0; for(var j=0;j<CHECK.length;j++) if(st.checklist["c"+j]) n++;
+  var cc=document.getElementById("chkcount");
+  cc.textContent=n+"/"+CHECK.length; cc.className="badge "+(n===CHECK.length?"st2":(n?"st1":"st0"));
+  window.__last = {DD:DD,W:W};
+  return {DD:DD,W:W};
+}
+function setOut(p,k,html){var el=document.getElementById("o-"+p+"-"+k); if(el) el.innerHTML=html;}
+
+/* ---------- štoperica ---------- */
+function swTick(){
+  PLATES.forEach(function(p){
+    var s=st.sw[p], d=document.getElementById("sw-"+p), b=document.getElementById("swb-"+p);
+    if(!d) return;
+    if(s.running && s.start){
+      d.textContent = fmt((Date.now()-s.start)/1000,1)+" s"; d.classList.add("run"); b.textContent="Stop";
+    } else { d.classList.remove("run"); b.textContent="Start";
+      var t=num(st.plates[p].time); d.textContent = ok(t)? fmt(t,1)+" s" : "0,0 s"; }
+  });
+}
+
+/* ---------- događaji ---------- */
+document.addEventListener("input", function(e){
+  var t=e.target, s=t.getAttribute("data-s"), k=t.getAttribute("data-k");
+  if(s && k && t.type!=="checkbox"){
+    if(s==="general") st.general[k]=t.value; else st.plates[s][k]=t.value;
+    save(); update(); if(k==="time") swTick();
+  }
+});
+document.addEventListener("change", function(e){
+  var t=e.target;
+  if(t.type==="checkbox"){
+    var c=t.getAttribute("data-c"), s=t.getAttribute("data-s"), k=t.getAttribute("data-k");
+    if(c) st.checklist[c]=t.checked;
+    else if(s&&k){ if(s==="general") st.general[k]=t.checked; else st.plates[s][k]=t.checked; }
+    var lab=t.closest("label"); if(lab) lab.classList.toggle("on",t.checked);
+    save(); update();
+  } else if(t.tagName==="SELECT"){
+    st.general[t.getAttribute("data-k")]=t.value; save(); update();
+  }
+});
+document.addEventListener("click", function(e){
+  var t=e.target.closest("button,tr[data-go]"); if(!t) return;
+  var p;
+  if((p=t.getAttribute("data-now"))){
+    var v=clock(new Date()); st.plates[p].start=v;
+    document.getElementById("f-"+p+"-start").value=v; save(); update();
+  } else if((p=t.getAttribute("data-sw"))){
+    var s=st.sw[p];
+    if(s.running){
+      var sec=(Date.now()-s.start)/1000; s.running=false; s.start=null;
+      st.plates[p].time = fmt(sec,1);
+      document.getElementById("f-"+p+"-time").value = st.plates[p].time;
+    } else { s.running=true; s.start=Date.now(); }
+    save(); update(); swTick();
+  } else if((p=t.getAttribute("data-swreset"))){
+    st.sw[p]={running:false,start:null}; save(); update(); swTick();
+  } else if((p=t.getAttribute("data-go"))){
+    var card=document.getElementById("card-"+p); card.open=true; card.scrollIntoView({behavior:"smooth"});
+  }
+});
+// otvori karticu kad se klikne u navigaciji
+document.getElementById("nav").addEventListener("click",function(e){
+  var a=e.target.closest("a"); if(!a) return;
+  var el=document.querySelector(a.getAttribute("href")); if(el && el.tagName==="DETAILS") el.open=true;
+});
+
+/* ---------- izvoz ---------- */
+function stamp(){var d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"_"+pad(d.getHours())+pad(d.getMinutes());}
+function download(name,text,mime){
+  try{
+    var blob=new Blob([text],{type:mime}), url=URL.createObjectURL(blob), a=document.createElement("a");
+    a.href=url; a.download=name; document.body.appendChild(a); a.click();
+    setTimeout(function(){URL.revokeObjectURL(url); a.remove();},2000);
+  }catch(e){ alert("Preuzimanje nije uspjelo: "+e.message); }
+}
+function csvCell(v){
+  var s=(v==null)?"":String(v);
+  if(/[;"\r\n]/.test(s)) s='"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function numOrText(f,v){
+  if(v==null||v==="") return "";
+  if(f.type==="check") return v?"DA":"NE";
+  if(f.type==="num"){ var x=num(v); if(ok(x)) return String(x).replace(".",","); }
+  return v;
+}
+function exportCSV(){
+  var r=update(), DD=r.DD, W=r.W;
+  var genF=GEN.filter(function(f){return !f.group}), plF=PF.filter(function(f){return !f.group && f.type!=="out"});
+  var head=["Ploča"];
+  genF.forEach(function(f){head.push("Opće: "+f.label+(f.unit?" ["+f.unit+"]":""))});
+  head.push("Checklista ispunjeno");
+  plF.forEach(function(f){head.push(f.label+(f.unit?" ["+f.unit+"]":""))});
+  head=head.concat(["d prosjek [mm]","T0 prosjek [°C]","v [mm/s]","v [cm/min]","Izvor brzine","Q [kJ/mm]","Stanje","Upozorenja"]);
+  var nChk=0; for(var j=0;j<CHECK.length;j++) if(st.checklist["c"+j]) nChk++;
+  var rows=[head.map(csvCell).join(";")];
+  PLATES.forEach(function(p){
+    var s=st.plates[p], D=DD[p], row=[p];
+    genF.forEach(function(f){row.push(numOrText(f,st.general[f.k]))});
+    row.push(nChk+"/"+CHECK.length);
+    plF.forEach(function(f){ row.push((f.only&&f.only.indexOf(p)<0)?"":numOrText(f,s[f.k])); });
+    var wl=[]; var wp=W[p]||{}; Object.keys(wp).forEach(function(k){wl=wl.concat(wp[k])});
+    row=row.concat([fmt(D.dAvg,2),fmt(D.T0,1),fmt(D.v,3),fmt(D.vcm,2),D.vSrc,fmt(D.Q,4),STATUS[D.status],wl.filter(function(x,i){return wl.indexOf(x)===i}).join(" | ")]);
+    rows.push(row.map(csvCell).join(";"));
+  });
+  download("zavarivanje_"+stamp()+".csv","﻿"+rows.join("\r\n"),"text/csv;charset=utf-8");
+}
+function exportJSON(){
+  var r=update(), out=JSON.parse(JSON.stringify(st));
+  out.izracun={}; PLATES.forEach(function(p){out.izracun[p]=r.DD[p]});
+  out.upozorenja=r.W; out.checklistaTekst=CHECK;
+  download("zavarivanje_"+stamp()+".json",JSON.stringify(out,null,2),"application/json");
+}
+function summary(){
+  var r=update(), DD=r.DD, W=r.W, g=st.general, L=[];
+  function gv(k,u){var v=g[k]; return (v==null||v==="")?"–":v+(u?" "+u:"");}
+  L.push("POKUS ZAVARIVANJA – SAŽETAK ("+gv("date")+")");
+  L.push("Zavarivač: "+gv("welder")+" | Uređaj: "+gv("machine"));
+  L.push("Čelik: "+gv("steel")+" | Re = "+gv("Re","MPa")+" | Cert./šarža: "+gv("cert"));
+  var chem=["C","Mn","Si","Cr","Mo","Ni","Cu","V"].filter(function(k){return g[k]}).map(function(k){return k+" "+g[k]});
+  if(chem.length) L.push("Kem. sastav (%): "+chem.join(", "));
+  L.push("Žica: "+gv("wire")+", Ø "+gv("wireD","mm")+" | Plin: "+gv("gas")+", "+gv("gasFlow","l/min")+" | Polaritet: "+gv("polarity"));
+  L.push("T okoline: "+gv("Tamb","°C")+" | k = 0,8");
+  if(g.notes) L.push("Napomene: "+g.notes);
+  var n=0; for(var j=0;j<CHECK.length;j++) if(st.checklist["c"+j]) n++;
+  L.push("Checklista: "+n+"/"+CHECK.length+(n<CHECK.length?" (neispunjeno: "+CHECK.filter(function(t,i){return !st.checklist["c"+i]}).join("; ")+")":""));
+  L.push("");
+  PLATES.forEach(function(p){
+    var s=st.plates[p], D=DD[p];
+    function v(k,u){var x=s[k]; return (x==null||x==="")?"–":x+(u?" "+u:"");}
+    L.push("== "+p+" ("+PLAN[p].desc+") – "+STATUS[D.status]+" ==");
+    L.push("Plan: T "+v("plannedT","°C")+", Q "+v("plannedQ"));
+    L.push("B×L = "+v("B")+" × "+v("L","mm")+" | d = "+[v("d1"),v("d2"),v("d3")].join(" / ")+" mm (prosj. "+(fmt(D.dAvg,2)||"–")+" mm)");
+    L.push("Podložje: "+v("support"));
+    L.push("T0 = "+[v("T01"),v("T02"),v("T03")].join(" / ")+" °C (prosj. "+(fmt(D.T0,1)||"–")+" °C)"+(p==="P3"||p==="P4"?" | Predgrijavanje: "+v("preheat"):""));
+    L.push("I = "+v("I","A")+", U = "+v("U","V")+", žica "+v("wfs","m/min")+", slob. kraj "+v("stickout","mm")+", nagib "+v("angle","°")+", početak "+v("start"));
+    L.push("Navar "+v("len","mm")+" u "+v("time","s")+" → v = "+(ok(D.v)?fmt(D.v,2)+" mm/s = "+fmt(D.vcm,1)+" cm/min ("+D.vSrc+")":"–"));
+    L.push("Q = "+(ok(D.Q)?fmt(D.Q,3)+" kJ/mm":"–"));
+    L.push("Širina navara "+v("beadW","mm")+", progib "+v("distort","mm"));
+    if(s.tcDist||s.t85||s.Tpeak) L.push("Termopar: "+v("tcDist","mm")+" od osi, t8/5 = "+v("t85","s")+", Tmax = "+v("Tpeak","°C"));
+    L.push("Zrak: "+(s.cAir?"DA":"NE")+", foto: "+(s.cPhoto?"DA":"NE")+", označeno: "+(s.cMark?"DA":"NE"));
+    if(s.notes) L.push("Napomene: "+s.notes);
+    var wp=W[p]||{}, wl=[]; Object.keys(wp).forEach(function(k){wp[k].forEach(function(m){if(wl.indexOf(m)<0) wl.push(m)})});
+    if(wl.length) L.push("UPOZORENJA: "+wl.join(" | "));
+    L.push("");
+  });
+  return L.join("\n");
+}
+function copyText(txt){
+  var info=document.getElementById("copyinfo");
+  function fallback(){
+    var ta=document.createElement("textarea"); ta.value=txt; ta.style.position="fixed"; ta.style.top="0"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.focus(); ta.select();
+    var okc=false; try{okc=document.execCommand("copy")}catch(e){}
+    ta.remove();
+    info.textContent = okc ? "✓ Sažetak kopiran." : "Kopiranje nije uspjelo – sažetak je prikazan ispod, označi ga i kopiraj ručno.";
+    if(!okc){ var pre=document.createElement("textarea"); pre.value=txt; pre.style.width="100%"; pre.style.height="300px"; info.appendChild(pre); }
+  }
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(txt).then(function(){info.textContent="✓ Sažetak kopiran – zalijepi ga u chat.";},fallback);
+  } else fallback();
+}
+document.getElementById("bCsv").onclick=exportCSV;
+document.getElementById("bJson").onclick=exportJSON;
+document.getElementById("bCopy").onclick=function(){copyText(summary())};
+document.getElementById("bImport").onclick=function(){document.getElementById("fImport").click()};
+document.getElementById("fImport").onchange=function(e){
+  var f=e.target.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var d=JSON.parse(rd.result); delete d.izracun; delete d.upozorenja; delete d.checklistaTekst;
+      if(!confirm("Uvoz će zamijeniti sve trenutne podatke. Nastaviti?")) return;
+      st=normalize(d); save(); build(); update(); swTick();
+    }catch(err){ alert("Datoteka nije ispravan JSON: "+err.message); }
+    e.target.value="";
+  };
+  rd.readAsText(f);
+};
+document.getElementById("bClear").onclick=function(){
+  if(!confirm("Obrisati SVE upisane podatke? Ovo se ne može poništiti.")) return;
+  if(!confirm("Sigurno? Preporuka: prvo izvezi JSON.")) return;
+  st=blank(); save(); build(); update(); swTick(); window.scrollTo(0,0);
+};
+
+/* ---------- start ---------- */
+load(); build(); update(); swTick();
+var el=document.getElementById("saveinfo");
+if(!storageOK){ el.className="err"; el.textContent="⚠ Automatsko spremanje NE radi u ovom pregledniku (npr. privatni način). Izvezi JSON redovito!"; }
+else { try{ localStorage.setItem(STORE_KEY+"_t","1"); localStorage.removeItem(STORE_KEY+"_t"); el.textContent = st.savedAt ? "✓ Učitani spremljeni podaci (zadnja izmjena "+clock(new Date(st.savedAt))+")" : "✓ Automatsko spremanje uključeno."; }
+       catch(e){ el.className="err"; el.textContent="⚠ Automatsko spremanje NE radi u ovom pregledniku. Izvezi JSON redovito!"; } }
+setInterval(swTick,200);
+})();
+</script>
+</body>
+</html>
